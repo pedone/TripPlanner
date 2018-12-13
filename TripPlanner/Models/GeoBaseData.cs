@@ -14,12 +14,20 @@ namespace TripPlanner.Models
     {
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
+
+        [Required]
         public string Name { get; set; }
-        //public string[] AlternateNames { get; set; }
+
+        public string[] AlternateNames { get; set; }
+
+        [Required]
         [StringLength(2, MinimumLength = 2)]
         public string CountryCode { get; set; }
+
         public float Longitude { get; set; }
+
         public float Lattitude { get; set; }
+
         public ICollection<TimeZone> TimeZones { get; set; }
     }
 }

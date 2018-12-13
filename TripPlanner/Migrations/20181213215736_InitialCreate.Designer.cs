@@ -10,7 +10,7 @@ using TripPlanner.Models;
 namespace TripPlanner.Migrations
 {
     [DbContext(typeof(TripPlannerContext))]
-    [Migration("20181213183021_InitialCreate")]
+    [Migration("20181213215736_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,21 +23,24 @@ namespace TripPlanner.Migrations
 
             modelBuilder.Entity("TripPlanner.Models.City", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<int>("Id");
 
-                    b.Property<string>("CountryCode");
+                    b.Property<string>("AlternateNames");
 
-                    b.Property<int?>("CountryId");
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2);
+
+                    b.Property<int>("CountryId");
 
                     b.Property<float>("Lattitude");
 
                     b.Property<float>("Longitude");
 
-                    b.Property<string>("Name");
+                    b.Property<string>("Name")
+                        .IsRequired();
 
-                    b.Property<int>("Population");
+                    b.Property<long>("Population");
 
                     b.HasKey("Id");
 
@@ -48,17 +51,20 @@ namespace TripPlanner.Migrations
 
             modelBuilder.Entity("TripPlanner.Models.Country", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<int>("Id");
 
-                    b.Property<string>("CountryCode");
+                    b.Property<string>("AlternateNames");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2);
 
                     b.Property<float>("Lattitude");
 
                     b.Property<float>("Longitude");
 
-                    b.Property<string>("Name");
+                    b.Property<string>("Name")
+                        .IsRequired();
 
                     b.HasKey("Id");
 
@@ -67,9 +73,7 @@ namespace TripPlanner.Migrations
 
             modelBuilder.Entity("TripPlanner.Models.TimeZone", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<int>("Id");
 
                     b.Property<int?>("CityId");
 
@@ -90,7 +94,8 @@ namespace TripPlanner.Migrations
                 {
                     b.HasOne("TripPlanner.Models.Country", "Country")
                         .WithMany("Cities")
-                        .HasForeignKey("CountryId");
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("TripPlanner.Models.TimeZone", b =>

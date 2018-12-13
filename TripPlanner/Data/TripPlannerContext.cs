@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace TripPlanner.Models
 {
     public class TripPlannerContext : DbContext
     {
-        public TripPlannerContext (DbContextOptions<TripPlannerContext> options)
+        public TripPlannerContext(DbContextOptions<TripPlannerContext> options)
             : base(options)
         {
         }
@@ -16,5 +17,21 @@ namespace TripPlanner.Models
         public DbSet<Country> Countries { get; set; }
         public DbSet<City> Cities { get; set; }
         public DbSet<TimeZone> TimeZones { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            var alternateNamesConverter = new ValueConverter<string[], string>(
+                v => string.Join(",", v),
+                v => v.Split(new char[] { ',' }));
+
+            modelBuilder.Entity<City>()
+                .Property(e => e.AlternateNames)
+                .HasConversion(alternateNamesConverter);
+            modelBuilder.Entity<Country>()
+                .Property(e => e.AlternateNames)
+                .HasConversion(alternateNamesConverter);
+        }
     }
 }

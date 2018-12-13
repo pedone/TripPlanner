@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace TripPlanner.Migrations
 {
@@ -11,10 +10,10 @@ namespace TripPlanner.Migrations
                 name: "Countries",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(nullable: true),
-                    CountryCode = table.Column<string>(nullable: true),
+                    Id = table.Column<int>(nullable: false),
+                    Name = table.Column<string>(nullable: false),
+                    AlternateNames = table.Column<string>(nullable: true),
+                    CountryCode = table.Column<string>(maxLength: 2, nullable: false),
                     Longitude = table.Column<float>(nullable: false),
                     Lattitude = table.Column<float>(nullable: false)
                 },
@@ -27,14 +26,14 @@ namespace TripPlanner.Migrations
                 name: "Cities",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(nullable: true),
-                    CountryCode = table.Column<string>(nullable: true),
+                    Id = table.Column<int>(nullable: false),
+                    Name = table.Column<string>(nullable: false),
+                    AlternateNames = table.Column<string>(nullable: true),
+                    CountryCode = table.Column<string>(maxLength: 2, nullable: false),
                     Longitude = table.Column<float>(nullable: false),
                     Lattitude = table.Column<float>(nullable: false),
-                    Population = table.Column<int>(nullable: false),
-                    CountryId = table.Column<int>(nullable: true)
+                    Population = table.Column<long>(nullable: false),
+                    CountryId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -44,15 +43,14 @@ namespace TripPlanner.Migrations
                         column: x => x.CountryId,
                         principalTable: "Countries",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
                 name: "TimeZones",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    Id = table.Column<int>(nullable: false),
                     Name = table.Column<string>(nullable: true),
                     CityId = table.Column<int>(nullable: true),
                     CountryId = table.Column<int>(nullable: true)
