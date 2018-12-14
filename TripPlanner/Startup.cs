@@ -1,16 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using TripPlanner.Data;
+using TripPlanner.Interfaces;
 using TripPlanner.Models;
+using TripPlanner.Options;
+using TripPlanner.Services;
 
 namespace TripPlanner
 {
@@ -32,9 +36,10 @@ namespace TripPlanner
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
+            services.Configure<DatabaseUpdateOptions>(Configuration);
 
+            services.AddSingleton<IDatabaseSeedData, DatabaseSeedData>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-
             services.AddDbContext<TripPlannerContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("TripPlannerContext")));
         }
@@ -42,7 +47,7 @@ namespace TripPlanner
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsEnvironment(Constants.Environments.DatabaseUpdate))
             {
                 app.UseDeveloperExceptionPage();
             }

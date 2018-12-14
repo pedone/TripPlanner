@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using TripPlanner.Data;
+using TripPlanner.Interfaces;
 using TripPlanner.Models;
 
 namespace TripPlanner
@@ -21,15 +23,21 @@ namespace TripPlanner
             using (var scope = host.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
-                try
+                var env = services.GetRequiredService<IHostingEnvironment>();
+                if (env.IsEnvironment(Constants.Environments.DatabaseUpdate))
                 {
-                    var context = services.GetRequiredService<TripPlannerContext>();
-                    context.Database.EnsureCreated();
-                }
-                catch (Exception ex)
-                {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "An error occurred creating the DB.");
+                    try
+                    {
+                        var seedData = services.GetRequiredService<IDatabaseSeedData>();
+                        seedData.InitializeDatabase();
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = services.GetRequiredService<ILogger<Program>>();
+                        logger.LogError(ex, "An error occurred seeding the DB.");
+                    }
+                    //don't run the host if we just updated the database
+                    return;
                 }
             }
 

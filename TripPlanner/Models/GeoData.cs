@@ -10,7 +10,7 @@ namespace TripPlanner.Models
     /// <summary>
     /// IMPORTANT: when editing the model, make sure to edit the model diagram in DBModel project first
     /// </summary>
-    public class GeoBaseData
+    public class GeoData
     {
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
@@ -20,14 +20,17 @@ namespace TripPlanner.Models
 
         public string[] AlternateNames { get; set; }
 
-        [Required]
-        [StringLength(2, MinimumLength = 2)]
-        public string CountryCode { get; set; }
-
         public float Longitude { get; set; }
 
         public float Lattitude { get; set; }
 
-        public ICollection<TimeZone> TimeZones { get; set; }
+        [Required]
+        public TimeZone TimeZone { get; set; }
+
+        [Required]
+        public Country Country { get; set; }
+
+        [Required]
+        public FeatureCode FeatureCode { get; set; }
     }
 }

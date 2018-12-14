@@ -15,8 +15,10 @@ namespace TripPlanner.Models
         }
 
         public DbSet<Country> Countries { get; set; }
-        public DbSet<City> Cities { get; set; }
         public DbSet<TimeZone> TimeZones { get; set; }
+        public DbSet<GeoData> GeoData { get; set; }
+        public DbSet<FeatureCode> FeatureCodes { get; set; }
+        public DbSet<FeatureCategory> FeatureCategories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,10 +28,7 @@ namespace TripPlanner.Models
                 v => string.Join(",", v),
                 v => v.Split(new char[] { ',' }));
 
-            modelBuilder.Entity<City>()
-                .Property(e => e.AlternateNames)
-                .HasConversion(alternateNamesConverter);
-            modelBuilder.Entity<Country>()
+            modelBuilder.Entity<GeoData>()
                 .Property(e => e.AlternateNames)
                 .HasConversion(alternateNamesConverter);
         }

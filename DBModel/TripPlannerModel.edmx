@@ -13,39 +13,41 @@
     <edmx:ConceptualModels>
       <Schema xmlns="http://schemas.microsoft.com/ado/2009/11/edm" xmlns:cg="http://schemas.microsoft.com/ado/2006/04/codegeneration" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" Namespace="TripPlannerModel" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" annotation:UseStrongSpatialTypes="false">
         <EntityContainer Name="TripPlannerModelContainer" annotation:LazyLoadingEnabled="true">
-          <AssociationSet Name="CountryCity" Association="TripPlannerModel.CountryCity">
-            <End Role="Country" EntitySet="GeoBaseDatas" />
-            <End Role="City" EntitySet="GeoBaseDatas" />
-          </AssociationSet>
-          <EntitySet Name="GeoBaseDatas" EntityType="TripPlannerModel.GeoBaseData" />
+          <EntitySet Name="GeoDatas" EntityType="TripPlannerModel.GeoData" />
           <EntitySet Name="Timezones" EntityType="TripPlannerModel.Timezone" />
           <AssociationSet Name="GeoBaseDataTimezone" Association="TripPlannerModel.GeoBaseDataTimezone">
-            <End Role="GeoBaseData" EntitySet="GeoBaseDatas" />
+            <End Role="GeoBaseData" EntitySet="GeoDatas" />
             <End Role="Timezone" EntitySet="Timezones" />
           </AssociationSet>
-        </EntityContainer>
-        <EntityType Name="Country" BaseType="TripPlannerModel.GeoBaseData">
-          <NavigationProperty Name="Cities" Relationship="TripPlannerModel.CountryCity" FromRole="Country" ToRole="City" />
-          </EntityType>
-        <EntityType Name="City" BaseType="TripPlannerModel.GeoBaseData">
-          <NavigationProperty Name="Country" Relationship="TripPlannerModel.CountryCity" FromRole="City" ToRole="Country" />
-          <Property Name="Population" Type="Int32" Nullable="false" />
-        </EntityType>
-        <Association Name="CountryCity">
-          <End Type="TripPlannerModel.Country" Role="Country" Multiplicity="1" />
-          <End Type="TripPlannerModel.City" Role="City" Multiplicity="*" />
-        </Association>
-        <EntityType Name="GeoBaseData">
+          <EntitySet Name="Countries" EntityType="TripPlannerModel.Country" />
+          <AssociationSet Name="CountryGeoData" Association="TripPlannerModel.CountryGeoData">
+            <End Role="Country" EntitySet="Countries" />
+            <End Role="GeoData" EntitySet="GeoDatas" />
+          </AssociationSet>
+          <EntitySet Name="FeatureCodes" EntityType="TripPlannerModel.FeatureCode" />
+          <AssociationSet Name="FeatureCodeGeoData" Association="TripPlannerModel.FeatureCodeGeoData">
+            <End Role="FeatureCode" EntitySet="FeatureCodes" />
+            <End Role="GeoData" EntitySet="GeoDatas" />
+          </AssociationSet>
+          <EntitySet Name="FeatureCategories" EntityType="TripPlannerModel.FeatureCategory" />
+          <AssociationSet Name="FeatureCategoryFeatureCode" Association="TripPlannerModel.FeatureCategoryFeatureCode">
+            <End Role="FeatureCategory" EntitySet="FeatureCategories" />
+            <End Role="FeatureCode" EntitySet="FeatureCodes" />
+          </AssociationSet>
+          </EntityContainer>
+        <EntityType Name="GeoData">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Name" Type="String" Nullable="false" />
           <Property Name="AlternateNames" Type="String" Nullable="false" />
-          <Property Name="CountryCode" Type="String" Nullable="false" />
           <Property Name="Longitude" Type="Double" Nullable="false" />
           <Property Name="Lattitude" Type="Double" Nullable="false" />
           <NavigationProperty Name="Timezones" Relationship="TripPlannerModel.GeoBaseDataTimezone" FromRole="GeoBaseData" ToRole="Timezone" />
           <Property Name="Id" Type="String" Nullable="false" />
+          <Property Name="Population" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="Country" Relationship="TripPlannerModel.CountryGeoData" FromRole="GeoData" ToRole="Country" />
+          <NavigationProperty Name="FeatureCode" Relationship="TripPlannerModel.FeatureCodeGeoData" FromRole="GeoData" ToRole="FeatureCode" />
         </EntityType>
         <EntityType Name="Timezone">
           <Key>
@@ -55,8 +57,45 @@
           <Property Name="Name" Type="String" Nullable="false" />
         </EntityType>
         <Association Name="GeoBaseDataTimezone">
-          <End Type="TripPlannerModel.GeoBaseData" Role="GeoBaseData" Multiplicity="*" />
-          <End Type="TripPlannerModel.Timezone" Role="Timezone" Multiplicity="*" />
+          <End Type="TripPlannerModel.GeoData" Role="GeoBaseData" Multiplicity="*" />
+          <End Type="TripPlannerModel.Timezone" Role="Timezone" Multiplicity="1" />
+        </Association>
+        <EntityType Name="Country">
+          <Key>
+            <PropertyRef Name="CountryCode" />
+          </Key>
+          <Property Name="CountryCode" Type="String" Nullable="false" />
+          <Property Name="Name" Type="String" Nullable="false" />
+        </EntityType>
+        <Association Name="CountryGeoData">
+          <End Type="TripPlannerModel.Country" Role="Country" Multiplicity="1" />
+          <End Type="TripPlannerModel.GeoData" Role="GeoData" Multiplicity="*" />
+        </Association>
+        <EntityType Name="FeatureCode">
+          <Key>
+            <PropertyRef Name="Code" />
+          </Key>
+          <NavigationProperty Name="GeoDatas" Relationship="TripPlannerModel.FeatureCodeGeoData" FromRole="FeatureCode" ToRole="GeoData" />
+          <Property Name="Code" Type="String" Nullable="false" />
+          <Property Name="Name" Type="String" Nullable="false" />
+          <Property Name="Description" Type="String" Nullable="false" />
+          <NavigationProperty Name="FeatureCategory" Relationship="TripPlannerModel.FeatureCategoryFeatureCode" FromRole="FeatureCode" ToRole="FeatureCategory" />
+        </EntityType>
+        <Association Name="FeatureCodeGeoData">
+          <End Type="TripPlannerModel.FeatureCode" Role="FeatureCode" Multiplicity="1" />
+          <End Type="TripPlannerModel.GeoData" Role="GeoData" Multiplicity="*" />
+        </Association>
+        <EntityType Name="FeatureCategory">
+          <Key>
+            <PropertyRef Name="Code" />
+          </Key>
+          <Property Name="Code" Type="String" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" />
+          <NavigationProperty Name="FeatureCodes" Relationship="TripPlannerModel.FeatureCategoryFeatureCode" FromRole="FeatureCategory" ToRole="FeatureCode" />
+        </EntityType>
+        <Association Name="FeatureCategoryFeatureCode">
+          <End Type="TripPlannerModel.FeatureCategory" Role="FeatureCategory" Multiplicity="1" />
+          <End Type="TripPlannerModel.FeatureCode" Role="FeatureCode" Multiplicity="*" />
         </Association>
       </Schema>
     </edmx:ConceptualModels>
