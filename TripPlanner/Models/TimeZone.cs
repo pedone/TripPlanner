@@ -13,5 +13,10 @@ namespace TripPlanner.Models
 
         [Required]
         public string Name { get; set; }
+
+        [Required]
+        public Country Country { get; set; }
+
+        public double GMT { get; set; }
     }
 }

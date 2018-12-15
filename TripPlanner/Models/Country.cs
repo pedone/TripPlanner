@@ -16,6 +16,8 @@ namespace TripPlanner.Models
         [Required]
         [StringLength(2, MinimumLength = 2)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public string CountryCode { get; set; }
+        public string Code { get; set; }
+
+        public ICollection<TimeZone> TimeZones { get; set; }
     }
 }

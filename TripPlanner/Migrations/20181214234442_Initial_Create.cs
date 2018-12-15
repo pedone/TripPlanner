@@ -2,7 +2,7 @@
 
 namespace TripPlanner.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class Initial_Create : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -10,12 +10,12 @@ namespace TripPlanner.Migrations
                 name: "Countries",
                 columns: table => new
                 {
-                    CountryCode = table.Column<string>(maxLength: 2, nullable: false),
+                    Code = table.Column<string>(maxLength: 2, nullable: false),
                     Name = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Countries", x => x.CountryCode);
+                    table.PrimaryKey("PK_Countries", x => x.Code);
                 });
 
             migrationBuilder.CreateTable(
@@ -35,11 +35,19 @@ namespace TripPlanner.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false),
-                    Name = table.Column<string>(nullable: false)
+                    Name = table.Column<string>(nullable: false),
+                    CountryCode = table.Column<string>(nullable: false),
+                    GMT = table.Column<double>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TimeZones", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TimeZones_Countries_CountryCode",
+                        column: x => x.CountryCode,
+                        principalTable: "Countries",
+                        principalColumn: "Code",
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -71,6 +79,7 @@ namespace TripPlanner.Migrations
                     AlternateNames = table.Column<string>(nullable: true),
                     Longitude = table.Column<float>(nullable: false),
                     Lattitude = table.Column<float>(nullable: false),
+                    Population = table.Column<long>(nullable: false),
                     TimeZoneId = table.Column<int>(nullable: false),
                     CountryCode = table.Column<string>(nullable: false),
                     FeatureCodeCode = table.Column<string>(nullable: false)
@@ -82,7 +91,7 @@ namespace TripPlanner.Migrations
                         name: "FK_GeoData_Countries_CountryCode",
                         column: x => x.CountryCode,
                         principalTable: "Countries",
-                        principalColumn: "CountryCode",
+                        principalColumn: "Code",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_GeoData_FeatureCodes_FeatureCodeCode",
@@ -117,15 +126,17 @@ namespace TripPlanner.Migrations
                 name: "IX_GeoData_TimeZoneId",
                 table: "GeoData",
                 column: "TimeZoneId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TimeZones_CountryCode",
+                table: "TimeZones",
+                column: "CountryCode");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
                 name: "GeoData");
-
-            migrationBuilder.DropTable(
-                name: "Countries");
 
             migrationBuilder.DropTable(
                 name: "FeatureCodes");
@@ -135,6 +146,9 @@ namespace TripPlanner.Migrations
 
             migrationBuilder.DropTable(
                 name: "FeatureCategories");
+
+            migrationBuilder.DropTable(
+                name: "Countries");
         }
     }
 }

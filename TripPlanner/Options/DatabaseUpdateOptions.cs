@@ -9,7 +9,8 @@ namespace TripPlanner.Options
     {
         public string SeedDataPath { get; set; }
         public string GeoDataFile { get; set; }
-        public string CountryDataFile { get; set; }
+        public string CountryCodeFile { get; set; }
         public string FeatureCodeFile { get; set; }
+        public string TimeZoneFile { get; set; }
     }
 }

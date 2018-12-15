@@ -9,8 +9,8 @@ using TripPlanner.Models;
 namespace TripPlanner.Migrations
 {
     [DbContext(typeof(TripPlannerContext))]
-    [Migration("20181214185544_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20181214234442_Initial_Create")]
+    partial class Initial_Create
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -22,13 +22,13 @@ namespace TripPlanner.Migrations
 
             modelBuilder.Entity("TripPlanner.Models.Country", b =>
                 {
-                    b.Property<string>("CountryCode")
+                    b.Property<string>("Code")
                         .HasMaxLength(2);
 
                     b.Property<string>("Name")
                         .IsRequired();
 
-                    b.HasKey("CountryCode");
+                    b.HasKey("Code");
 
                     b.ToTable("Countries");
                 });
@@ -84,6 +84,8 @@ namespace TripPlanner.Migrations
                     b.Property<string>("Name")
                         .IsRequired();
 
+                    b.Property<long>("Population");
+
                     b.Property<int>("TimeZoneId");
 
                     b.HasKey("Id");
@@ -101,10 +103,17 @@ namespace TripPlanner.Migrations
                 {
                     b.Property<int>("Id");
 
+                    b.Property<string>("CountryCode")
+                        .IsRequired();
+
+                    b.Property<double>("GMT");
+
                     b.Property<string>("Name")
                         .IsRequired();
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CountryCode");
 
                     b.ToTable("TimeZones");
                 });
@@ -132,6 +141,14 @@ namespace TripPlanner.Migrations
                     b.HasOne("TripPlanner.Models.TimeZone", "TimeZone")
                         .WithMany()
                         .HasForeignKey("TimeZoneId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("TripPlanner.Models.TimeZone", b =>
+                {
+                    b.HasOne("TripPlanner.Models.Country", "Country")
+                        .WithMany("TimeZones")
+                        .HasForeignKey("CountryCode")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618

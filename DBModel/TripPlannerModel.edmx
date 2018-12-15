@@ -34,6 +34,10 @@
             <End Role="FeatureCategory" EntitySet="FeatureCategories" />
             <End Role="FeatureCode" EntitySet="FeatureCodes" />
           </AssociationSet>
+          <AssociationSet Name="CountryTimezone" Association="TripPlannerModel.CountryTimezone">
+            <End Role="Country" EntitySet="Countries" />
+            <End Role="Timezone" EntitySet="Timezones" />
+          </AssociationSet>
           </EntityContainer>
         <EntityType Name="GeoData">
           <Key>
@@ -55,6 +59,8 @@
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Name" Type="String" Nullable="false" />
+          <Property Name="GMT" Type="Double" Nullable="false" />
+          <NavigationProperty Name="Country" Relationship="TripPlannerModel.CountryTimezone" FromRole="Timezone" ToRole="Country" />
         </EntityType>
         <Association Name="GeoBaseDataTimezone">
           <End Type="TripPlannerModel.GeoData" Role="GeoBaseData" Multiplicity="*" />
@@ -62,10 +68,11 @@
         </Association>
         <EntityType Name="Country">
           <Key>
-            <PropertyRef Name="CountryCode" />
+            <PropertyRef Name="Code" />
           </Key>
-          <Property Name="CountryCode" Type="String" Nullable="false" />
+          <Property Name="Code" Type="String" Nullable="false" />
           <Property Name="Name" Type="String" Nullable="false" />
+          <NavigationProperty Name="Timezones" Relationship="TripPlannerModel.CountryTimezone" FromRole="Country" ToRole="Timezone" />
         </EntityType>
         <Association Name="CountryGeoData">
           <End Type="TripPlannerModel.Country" Role="Country" Multiplicity="1" />
@@ -96,6 +103,10 @@
         <Association Name="FeatureCategoryFeatureCode">
           <End Type="TripPlannerModel.FeatureCategory" Role="FeatureCategory" Multiplicity="1" />
           <End Type="TripPlannerModel.FeatureCode" Role="FeatureCode" Multiplicity="*" />
+        </Association>
+        <Association Name="CountryTimezone">
+          <End Type="TripPlannerModel.Country" Role="Country" Multiplicity="1" />
+          <End Type="TripPlannerModel.Timezone" Role="Timezone" Multiplicity="*" />
         </Association>
       </Schema>
     </edmx:ConceptualModels>

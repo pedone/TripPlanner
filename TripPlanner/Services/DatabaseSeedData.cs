@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,6 +9,7 @@ using TripPlanner.Data;
 using TripPlanner.Interfaces;
 using TripPlanner.Models;
 using TripPlanner.Options;
+using TimeZone = TripPlanner.Models.TimeZone;
 
 namespace TripPlanner.Services
 {
@@ -61,11 +63,13 @@ namespace TripPlanner.Services
 
         private DatabaseUpdateOptions _options;
         private TripPlannerContext _context;
+        private ILogger _logger;
 
-        public DatabaseSeedData(IOptions<DatabaseUpdateOptions> options, TripPlannerContext context)
+        public DatabaseSeedData(IOptions<DatabaseUpdateOptions> options, TripPlannerContext context, ILogger<DatabaseSeedData> logger)
         {
             _options = options.Value;
             _context = context;
+            _logger = logger;
         }
 
         private void ClearDB()
@@ -83,17 +87,71 @@ namespace TripPlanner.Services
 
             //FeatureCodes, FeatureCategories
             string featureCodeFile = Path.Combine(_options.SeedDataPath, _options.FeatureCodeFile);
-            (IEnumerable<FeatureCode> featureCodes, IEnumerable<FeatureCategory> featureCategories) = ReadFeatureData(featureCodeFile);
-            _context.FeatureCategories.AddRange(featureCategories);
-            _context.FeatureCodes.AddRange(featureCodes);
+            var features = ReadFeatureData(featureCodeFile);
 
-            //string cityFile = Path.Combine(_options.SeedDataPath, _options.CityDataFile);
-            //var cities = InitGeoData<City>(cityFile);
-            //foreach (var cur in cities)
-            //    cur.Country = countries.First(country => country.CountryCode == cur.CountryCode);
+            //CountryCodes
+            string countryCodeFile = Path.Combine(_options.SeedDataPath, _options.CountryCodeFile);
+            IEnumerable<Country> countries = ReadCountryData(countryCodeFile).ToList();
 
-            //_context.Countries.AddRange(countries);
+            //TimeZones
+            string timeZoneFile = Path.Combine(_options.SeedDataPath, _options.TimeZoneFile);
+            IEnumerable<TimeZone> timezones = ReadTimeZoneData(timeZoneFile, countries).ToList();
+
+            string geoDataFile = Path.Combine(_options.SeedDataPath, _options.GeoDataFile);
+            var geoData = InitGeoData<GeoData>(geoDataFile, features.codes, countries, timezones).ToList();
+
+            //insert data
+            _context.FeatureCodes.AddRange(features.codes);
+            _context.FeatureCategories.AddRange(features.categories);
+            _context.TimeZones.AddRange(timezones);
+            _context.Countries.AddRange(countries);
+            _context.GeoData.AddRange(geoData);
+
             _context.SaveChanges();
+        }
+
+        private IEnumerable<TimeZone> ReadTimeZoneData(string file, IEnumerable<Country> countries)
+        {
+            using (var reader = new StreamReader(file))
+            {
+                int index = 0;
+                string line;
+                while (!string.IsNullOrEmpty(line = reader.ReadLine()))
+                {
+                    var parts = line.Split(Constants.Separator.Tab);
+                    if (parts.Length != 5)
+                        throw new InvalidDataException("the time zone data does not have the correct format");
+
+                    yield return new TimeZone
+                    {
+                        Id = index,
+                        Name = parts[1],
+                        GMT = double.Parse(parts[2]),
+                        Country = countries.First(cur => cur.Code == parts[0])
+                    };
+                    index++;
+                }
+            }
+        }
+
+        private IEnumerable<Country> ReadCountryData(string file)
+        {
+            using (var reader = new StreamReader(file))
+            {
+                string line;
+                while (!string.IsNullOrEmpty(line = reader.ReadLine()))
+                {
+                    var parts = line.Split(Constants.Separator.Comma);
+                    if (parts.Length != 2)
+                        throw new InvalidDataException("the country code data does not have the correct format");
+
+                    yield return new Country
+                    {
+                        Name = parts[0],
+                        Code = parts[1]
+                    };
+                }
+            }
         }
 
         private (IEnumerable<FeatureCode> codes, IEnumerable<FeatureCategory> categories) ReadFeatureData(string file)
@@ -114,7 +172,7 @@ namespace TripPlanner.Services
                         case 1:
                             parts = parts[0].Split(new char[] { ' ' }, 2);
                             if (parts.Length != 2 || parts[0].Length != 1)
-                                throw new InvalidDataException("the feature category data is not in the correct format");
+                                throw new InvalidDataException("the feature category data does not have the correct format");
 
                             curCategory = new FeatureCategory
                             {
@@ -144,9 +202,9 @@ namespace TripPlanner.Services
             return (codes: codes, categories: categories);
         }
 
-        private IEnumerable<T> InitGeoData<T>(string file) where T : GeoData, new()
+        private IEnumerable<T> InitGeoData<T>(string file, IEnumerable<FeatureCode> featureCodes, IEnumerable<Country> countries, IEnumerable<TimeZone> timezones)
+            where T : GeoData, new()
         {
-            int lineNumber = 0;
             using (var reader = new StreamReader(file))
             {
                 string line;
@@ -154,16 +212,19 @@ namespace TripPlanner.Services
                 {
                     var parts = line.Split("\t");
                     if (parts.Length != (int)GeonameField.Count)
-                        throw new InvalidDataException($"the geo data at line {lineNumber} of file {file} does not have the correct format");
+                        throw new InvalidDataException("geo data does not have the correct format");
 
                     yield return new T
                     {
                         Id = int.Parse(parts[(int)GeonameField.Id]),
                         Name = parts[(int)GeonameField.Name],
-                        //CountryCode = parts[(int)GeonameField.CountryCode],
                         Lattitude = float.Parse(parts[(int)GeonameField.Latitude]),
                         Longitude = float.Parse(parts[(int)GeonameField.Longitude]),
-                        AlternateNames = parts[(int)GeonameField.AlternateNames].Split(",")
+                        AlternateNames = parts[(int)GeonameField.AlternateNames].Split(","),
+                        Population = int.Parse(parts[(int)GeonameField.Population]),
+                        TimeZone = timezones.First(cur => cur.Name == parts[(int)GeonameField.TimeZone]),
+                        Country = countries.First(cur => cur.Code == parts[(int)GeonameField.CountryCode]),
+                        FeatureCode = featureCodes.First(cur => cur.Code == parts[(int)GeonameField.FeatureCode]),
                     };
                 }
             }

@@ -10,6 +10,7 @@ namespace TripPlanner.Data
         public static class Separator
         {
             public const string Tab = "\t";
+            public const string Comma = ",";
         }
 
         public static class Environments

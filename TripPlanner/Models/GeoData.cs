@@ -24,6 +24,8 @@ namespace TripPlanner.Models
 
         public float Lattitude { get; set; }
 
+        public long Population { get; set; }
+
         [Required]
         public TimeZone TimeZone { get; set; }
 

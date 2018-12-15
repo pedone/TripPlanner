@@ -14,6 +14,7 @@
         <AssociationConnector Association="TripPlannerModel.FeatureCodeGeoData" />
         <EntityTypeShape EntityType="TripPlannerModel.FeatureCategory" Width="2.125" PointX="1" PointY="4.625" />
         <AssociationConnector Association="TripPlannerModel.FeatureCategoryFeatureCode" />
+        <AssociationConnector Association="TripPlannerModel.CountryTimezone" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
